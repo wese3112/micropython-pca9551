@@ -43,7 +43,7 @@ def _leds_to_selectors(leds: list, ls0: int, ls1: int, set_to=LED_OFF) -> (int, 
 def _duty_cycle_to_byte(duty_cycle: float) -> bytes:
     '''Returns a byte that maps a float from 0.0..1.0 to an int 255..0. The
     range is reversed to match the PCA9551 duty cycle logic.'''
-    assert duty_cycle <= 1.0, 'enter duty cycle as percent in 0.0 .. 1.0'
+    assert 0.0 <= duty_cycle <= 1.0, 'enter duty cycle as percent in 0.0 .. 1.0'
     return bytes([ceil((1.0 - duty_cycle) * 255)])
 
 
@@ -55,12 +55,19 @@ def _duty_cycle_byte_to_percent(duty_cycle: bytes) -> float:
 
 class PCA9551:
 
-    def __init__(self, i2c_handler):
-        self.i2c = i2c_handler
-        self._addr = PCA9551_ADDRESS
+    def __init__(self, write_callback, read_callback, address=PCA9551_ADDRESS):
+        '''Two callback functions must be passed to the constructor to perform
+        the I2C operations. The callbacks must take the following arguments:
+        
+        write_callback(i2c_address: int, register_address: int, data: bytes)
+        read_callback(i2c_address: int, register_address: int, num_read: int)
+        '''
+        self.write_callback = write_callback
+        self.read_callback = read_callback
+        self._addr = address
     
-        self.write = lambda r, b: self.i2c.writeto_mem(self._addr, r, b)
-        self.read = lambda r, n: self.i2c.readfrom_mem(self._addr, r, n)
+        self.write = lambda r, b: self.write_callback(self._addr, r, b)
+        self.read = lambda r, n: self.read_callback(self._addr, r, n)
 
         # initial state of LED selectors = all LEDs off
         self.ls0, self.ls1 = 0x55, 0x55
