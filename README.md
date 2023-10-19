@@ -12,7 +12,6 @@ Welcome to the PCA9551 Python library repository! This library is designed to fa
   - [Controlling LEDs](#controlling-leds)
   - [PWM Control](#pwm-control)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Introduction
 
